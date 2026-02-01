@@ -1,0 +1,210 @@
+-- Snow Scripts GUI - Draggable + Toggle Button מחוץ ל-GUI + Anti-Cheat Friendly
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SnowScriptsGUI"
+ScreenGui.Parent = game:GetService("CoreGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 350, 0, 240)
+Frame.Position = UDim2.new(0.5, -175, 0.5, -120)
+Frame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
+Frame.BorderSizePixel = 0
+Frame.Parent = ScreenGui
+Frame.ClipsDescendants = true
+Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+
+-- Toggle Button מחוץ ל-GUI בצד ימין
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+ToggleButton.Position = UDim2.new(1, 10, 0.5, -25) -- מחוץ לGUI, באמצע בצד ימין
+ToggleButton.Text = "❄"
+ToggleButton.Font = Enum.Font.FredokaOne
+ToggleButton.TextSize = 28
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Parent = ScreenGui
+
+local frameVisible = true
+ToggleButton.MouseButton1Click:Connect(function()
+    frameVisible = not frameVisible
+    Frame.Visible = frameVisible
+end)
+
+-- Draggable Mobile/Desktop
+do
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                   startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    Frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    Frame.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            update(input)
+        end
+    end)
+end
+
+-- Background Snow Effect
+local Snow = Instance.new("Frame")
+Snow.Size = UDim2.new(1, 0, 1, 0)
+Snow.BackgroundTransparency = 1
+Snow.Parent = Frame
+
+for i = 1, 50 do
+    local flake = Instance.new("Frame")
+    flake.Size = UDim2.new(0, math.random(3,6), 0, math.random(3,6))
+    flake.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    flake.BackgroundTransparency = 0.2
+    flake.Position = UDim2.new(math.random(),0,math.random(),0)
+    flake.BorderSizePixel = 0
+    flake.ClipsDescendants = true
+    flake.Parent = Snow
+
+    coroutine.wrap(function()
+        while true do
+            local speed = math.random(30,80)/100
+            local tween = TweenService:Create(flake, TweenInfo.new(speed, Enum.EasingStyle.Linear), {Position = UDim2.new(math.random(),0,1,0)})
+            tween:Play()
+            tween.Completed:Wait()
+            flake.Position = UDim2.new(math.random(),0,0,0)
+            wait(math.random()/2)
+        end
+    end)()
+end
+
+-- UI Name
+local UIName = Instance.new("TextLabel")
+UIName.Size = UDim2.new(1, 0, 0, 50)
+UIName.Position = UDim2.new(0, 0, 0, 0)
+UIName.Text = "Snow Scripts ❄️"
+UIName.Font = Enum.Font.FredokaOne
+UIName.TextSize = 30
+UIName.TextColor3 = Color3.fromRGB(200, 200, 255)
+UIName.BackgroundTransparency = 1
+UIName.Parent = Frame
+
+-- Speed Section
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Size = UDim2.new(0, 100, 0, 30)
+SpeedLabel.Position = UDim2.new(0, 20, 0, 70)
+SpeedLabel.Text = "Speed"
+SpeedLabel.Font = Enum.Font.GothamBold
+SpeedLabel.TextSize = 22
+SpeedLabel.TextColor3 = Color3.fromRGB(180, 180, 255)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Parent = Frame
+
+local SpeedSlider = Instance.new("TextBox")
+SpeedSlider.Size = UDim2.new(0, 150, 0, 30)
+SpeedSlider.Position = UDim2.new(0, 120, 0, 70)
+SpeedSlider.Text = "50"
+SpeedSlider.Font = Enum.Font.Gotham
+SpeedSlider.TextSize = 20
+SpeedSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+SpeedSlider.BorderSizePixel = 0
+SpeedSlider.Parent = Frame
+
+local SpeedToggle = Instance.new("TextButton")
+SpeedToggle.Size = UDim2.new(0, 60, 0, 30)
+SpeedToggle.Position = UDim2.new(0, 120, 0, 110)
+SpeedToggle.Text = "OFF"
+SpeedToggle.Font = Enum.Font.GothamBold
+SpeedToggle.TextSize = 20
+SpeedToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedToggle.BackgroundColor3 = Color3.fromRGB(100, 0, 200)
+SpeedToggle.Parent = Frame
+
+local speedOn = false
+SpeedToggle.MouseButton1Click:Connect(function()
+    speedOn = not speedOn
+    SpeedToggle.Text = speedOn and "ON" or "OFF"
+end)
+
+-- Inf Jump Section
+local InfJumpLabel = Instance.new("TextLabel")
+InfJumpLabel.Size = UDim2.new(0, 120, 0, 30)
+InfJumpLabel.Position = UDim2.new(0, 20, 0, 160)
+InfJumpLabel.Text = "Inf Jump"
+InfJumpLabel.Font = Enum.Font.GothamBold
+InfJumpLabel.TextSize = 22
+InfJumpLabel.TextColor3 = Color3.fromRGB(180, 180, 255)
+InfJumpLabel.BackgroundTransparency = 1
+InfJumpLabel.Parent = Frame
+
+local InfJumpToggle = Instance.new("TextButton")
+InfJumpToggle.Size = UDim2.new(0, 60, 0, 30)
+InfJumpToggle.Position = UDim2.new(0, 120, 0, 160)
+InfJumpToggle.Text = "OFF"
+InfJumpToggle.Font = Enum.Font.GothamBold
+InfJumpToggle.TextSize = 20
+InfJumpToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+InfJumpToggle.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+InfJumpToggle.Parent = Frame
+
+local infJumpOn = false
+InfJumpToggle.MouseButton1Click:Connect(function()
+    infJumpOn = not infJumpOn
+    InfJumpToggle.Text = infJumpOn and "ON" or "OFF"
+end)
+
+-- Speed BodyVelocity - נוצר רק כשדלוק
+local speedForce
+RunService.RenderStepped:Connect(function()
+    if speedOn then
+        local speed = tonumber(SpeedSlider.Text) or 50
+        local direction = Humanoid.MoveDirection * speed
+        if direction.Magnitude > 0 then
+            if not speedForce then
+                speedForce = Instance.new("BodyVelocity")
+                speedForce.MaxForce = Vector3.new(1e5, 0, 1e5)
+                speedForce.Parent = RootPart
+            end
+            speedForce.Velocity = Vector3.new(direction.X, 0, direction.Z)
+        else
+            if speedForce then
+                speedForce.Velocity = Vector3.new(0,0,0)
+            end
+        end
+    else
+        if speedForce then
+            speedForce:Destroy()
+            speedForce = nil
+        end
+    end
+end)
+
+-- Infinite Jump
+UserInputService.JumpRequest:Connect(function()
+    if infJumpOn then
+        RootPart.Velocity = Vector3.new(RootPart.Velocity.X, 50, RootPart.Velocity.Z)
+    end
+end)
